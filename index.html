@@ -75,9 +75,14 @@
 
         /* Modals */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 9999; }
-        .modal-box { background: #282828; padding: 25px; border-radius: 12px; width: 380px; display: flex; flex-direction: column; gap: 12px; }
+        .modal-box { background: #282828; padding: 25px; border-radius: 12px; width: 400px; display: flex; flex-direction: column; gap: 12px; }
         .modal-box input, .modal-box select { background: #3e3e3e; border: none; padding: 10px; border-radius: 4px; color: white; outline: none; }
+        .modal-box input[type="file"] { font-size: 12px; cursor: pointer; }
         .btn-add { background: var(--sp-green); color: black; font-weight: bold; padding: 12px; border-radius: 25px; border: none; cursor: pointer; margin-top: 10px; }
+        
+        /* New: Group for Image Input in Song Modal */
+        .img-input-group { display: flex; gap: 10px; align-items: center; background: #333; padding: 5px; border-radius: 4px; }
+        .preview-mini { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; background: #000; flex-shrink: 0;}
 
         /* Cards */
         .home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; padding: 24px; }
@@ -216,6 +221,16 @@
             <select id="sTarget"></select>
             <input type="text" id="sTitle" placeholder="Tên bài hát">
             <input type="text" id="sArtist" placeholder="Nghệ sĩ">
+            
+            <label style="font-size: 12px; color: #b3b3b3; margin-bottom: -8px;">Ảnh bài hát (Link hoặc File):</label>
+            <div class="img-input-group">
+                <img id="sImgPreview" src="https://via.placeholder.com/50" class="preview-mini">
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 5px;">
+                    <input type="text" id="sImgUrl" placeholder="Dán Link ảnh vào đây..." oninput="updateSongPreview(this.value)" style="font-size: 11px; padding: 6px;">
+                    <input type="file" id="sImgFile" accept="image/*" onchange="handleSongFile(this)">
+                </div>
+            </div>
+
             <input type="text" id="sLink" placeholder="Link nhạc (.mp3)">
             <button class="btn-add" onclick="addNewSong()">THÊM BÀI</button>
         </div>
@@ -247,6 +262,10 @@
         let user = JSON.parse(localStorage.getItem('sp_user')) || null;
         let curFolder = -1, curSong = -1, isShuffle = false, isRepeat = false, folderTarget = -1;
         let playedFromFolder = -1;
+        
+        // Biến tạm để lưu ảnh bài hát khi thêm mới
+        let tempSongImg = ""; 
+
         const audio = document.getElementById('audio');
 
         window.onload = () => { renderHome(); checkAuth(); };
@@ -321,21 +340,64 @@
             document.getElementById('folderPage').style.display = p === 'folder' ? 'block' : 'none';
         }
 
+        // --- CÁC HÀM LIÊN QUAN ĐẾN THÊM BÀI HÁT ---
         function openSongModal() {
             const sel = document.getElementById('sTarget'); sel.innerHTML = '';
             db.forEach((f, i) => { sel.innerHTML += `<option value="${i}" ${i === curFolder ? 'selected' : ''}>${f.name}</option>`; });
+            
+            // Reset form
+            document.getElementById('sTitle').value = '';
+            document.getElementById('sArtist').value = '';
+            document.getElementById('sLink').value = '';
+            document.getElementById('sImgUrl').value = '';
+            document.getElementById('sImgFile').value = '';
+            document.getElementById('sImgPreview').src = 'https://via.placeholder.com/50';
+            tempSongImg = ""; // Reset biến ảnh tạm
+
             openModal('songModal');
+        }
+
+        function updateSongPreview(url) {
+            if(url) {
+                tempSongImg = url;
+                document.getElementById('sImgPreview').src = url;
+            }
+        }
+
+        function handleSongFile(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    tempSongImg = e.target.result; // Lưu chuỗi Base64
+                    document.getElementById('sImgPreview').src = tempSongImg;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
         }
 
         function addNewSong() {
             const idx = document.getElementById('sTarget').value;
             const title = document.getElementById('sTitle').value;
             const link = document.getElementById('sLink').value;
+            
+            // Nếu không chọn ảnh mới, lấy ảnh của playlist làm mặc định
+            const finalImg = tempSongImg || db[idx].img;
+
             if (title && link) {
-                db[idx].songs.push({ title, artist: document.getElementById('sArtist').value || "Nghệ sĩ", link, img: db[idx].img });
-                save(); if (curFolder == idx) renderSongs(); document.getElementById('songModal').style.display = 'none';
+                db[idx].songs.push({ 
+                    title, 
+                    artist: document.getElementById('sArtist').value || "Nghệ sĩ", 
+                    link, 
+                    img: finalImg 
+                });
+                save(); 
+                if (curFolder == idx) renderSongs(); 
+                document.getElementById('songModal').style.display = 'none';
+            } else {
+                alert("Vui lòng nhập tên bài hát và link nhạc!");
             }
         }
+        // -------------------------------------------
 
         function renderSongs() {
             const body = document.getElementById('songBody'); body.innerHTML = '';
@@ -345,7 +407,7 @@
                 body.innerHTML += `
                     <tr class="song-row ${isPlaying ? 'playing-now' : ''}" onclick="playSong(${i})">
                         <td>${isPlaying ? '<i class="fas fa-volume-up" style="color:#1ed760"></i>' : i + 1}</td>
-                        <td><div style="display:flex;align-items:center;gap:10px;"><img src="${s.img}" style="width:40px;height:40px;border-radius:4px;"><b>${s.title}</b></div></td>
+                        <td><div style="display:flex;align-items:center;gap:10px;"><img src="${s.img}" style="width:40px;height:40px;border-radius:4px; object-fit: cover;"><b>${s.title}</b></div></td>
                         <td>${s.artist}</td>
                         <td>3:45</td>
                     </tr>`;
@@ -400,7 +462,3 @@
     </script>
 </body>
 </html>
-
-
-
-
