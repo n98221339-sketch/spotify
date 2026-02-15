@@ -171,13 +171,13 @@
         </div>
         <div class="p-center">
             <div style="display: flex; align-items: center; gap: 20px;">
-                <i class="fas fa-shuffle ctrl-btn" id="shuffleBtn"></i>
+                <i class="fas fa-shuffle ctrl-btn" id="shuffleBtn" onclick="alert('Chế độ ngẫu nhiên!')"></i>
                 <i class="fas fa-step-backward ctrl-btn" onclick="prevSong()"></i>
                 <button onclick="togglePlay()" style="background:white; border:none; width:35px; height:35px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
                     <i class="fas fa-play" id="pIcon" style="color:black; font-size:14px;"></i>
                 </button>
                 <i class="fas fa-step-forward ctrl-btn" onclick="nextSong()"></i>
-                <i class="fas fa-repeat ctrl-btn" id="repeatBtn"></i>
+                <i class="fas fa-repeat ctrl-btn" id="repeatBtn" onclick="alert('Lặp lại bài viết!')"></i>
             </div>
             <div style="display: flex; align-items: center; gap: 10px; width: 100%; font-size: 11px;">
                 <span id="timeCurrent">0:00</span>
@@ -298,9 +298,14 @@
 
         function createFolder() {
             const name = document.getElementById('fName').value;
+            const img = document.getElementById('fPreview').src;
+            const color = document.getElementById('fColor').value;
             if (name) {
-                db.push({ name, img: document.getElementById('fPreview').src, color: document.getElementById('fColor').value, songs: [] });
+                db.push({ name, img, color, songs: [] });
                 save(); renderHome(); document.getElementById('folderModal').style.display = 'none';
+                // Reset form
+                document.getElementById('fName').value = '';
+                document.getElementById('fPreview').src = 'https://via.placeholder.com/300';
             }
         }
 
@@ -319,9 +324,11 @@
 
         function showMenu(e, i) {
             e.stopPropagation();
-            curFolder = i; // Store target index
+            curFolder = i; 
             const m = document.getElementById('folderContextMenu');
-            m.style.display = 'block'; m.style.top = e.clientY + 'px'; m.style.left = e.clientX + 'px';
+            m.style.display = 'block'; 
+            m.style.top = e.clientY + 'px'; 
+            m.style.left = e.clientX + 'px';
         }
 
         function deleteFolder() {
@@ -334,9 +341,10 @@
 
         function openFolder(i) {
             curFolder = i;
-            document.getElementById('fTitle').innerText = db[i].name;
-            document.getElementById('fImg').src = db[i].img;
-            document.getElementById('headerGradient').style.setProperty('--header-color', db[i].color);
+            const folder = db[i];
+            document.getElementById('fTitle').innerText = folder.name;
+            document.getElementById('fImg').src = folder.img;
+            document.getElementById('headerGradient').style.setProperty('--header-color', folder.color);
             renderSongs(); 
             showPage('folder');
         }
@@ -358,14 +366,20 @@
             const idx = document.getElementById('sTarget').value;
             const title = document.getElementById('sTitle').value;
             const link = document.getElementById('sLink').value;
+            const artist = document.getElementById('sArtist').value || "Nghệ sĩ";
+            const img = document.getElementById('sPreview').src;
+            
             if (title && link) {
-                db[idx].songs.push({ 
-                    title, 
-                    artist: document.getElementById('sArtist').value || "Nghệ sĩ", 
-                    link, 
-                    img: document.getElementById('sPreview').src 
-                });
-                save(); renderSongs(); renderHome(); document.getElementById('songModal').style.display = 'none';
+                db[idx].songs.push({ title, artist, link, img });
+                save(); 
+                if(parseInt(idx) === curFolder) renderSongs(); 
+                renderHome(); 
+                document.getElementById('songModal').style.display = 'none';
+                // Reset form
+                document.getElementById('sTitle').value = '';
+                document.getElementById('sLink').value = '';
+            } else {
+                alert("Vui lòng nhập tên bài và link nhạc!");
             }
         }
 
@@ -387,25 +401,30 @@
                         </div>
                     </td>
                     <td>${s.artist}</td>
-                    <td style="text-align:center;"><i class="fas fa-ellipsis-h" onclick="event.stopPropagation(); deleteSongFromList(${i})"></i></td>
+                    <td style="text-align:center;"><i class="fas fa-trash-alt" onclick="event.stopPropagation(); deleteSongFromList(${i})"></i></td>
                 </tr>`;
             });
             document.getElementById('fCount').innerText = db[curFolder].songs.length;
         }
 
         function deleteSongFromList(i) {
-            if(confirm("Xóa bài hát này?")) {
+            if(confirm("Xóa bài hát này khỏi playlist?")) {
                 db[curFolder].songs.splice(i, 1);
-                save(); renderSongs();
+                save(); renderSongs(); renderHome();
             }
         }
 
         function playSong(i) {
-            if (!db[curFolder].songs[i]) return;
-            curSong = i; playedFromFolder = curFolder;
+            if (!db[curFolder] || !db[curFolder].songs[i]) return;
+            curSong = i; 
+            playedFromFolder = curFolder;
             const s = db[playedFromFolder].songs[curSong];
+            
             audio.src = s.link;
-            audio.play().catch(e => alert("Link nhạc lỗi hoặc không hỗ trợ phát trực tiếp!"));
+            audio.play().catch(e => {
+                console.error(e);
+                alert("Không thể phát bài hát này. Có thể link trực tiếp bị lỗi hoặc không hỗ trợ!");
+            });
             
             document.getElementById('pTitle').innerText = s.title;
             document.getElementById('pArtist').innerText = s.artist;
@@ -417,7 +436,7 @@
 
         function togglePlay() {
             if (!audio.src) {
-                if (db[curFolder]?.songs.length > 0) playSong(0);
+                if (curFolder !== -1 && db[curFolder].songs.length > 0) playSong(0);
                 return;
             }
             if (audio.paused) { audio.play(); updateIcons(true); }
@@ -457,15 +476,19 @@
         }
         
         audio.onended = nextSong;
+
         function seek(e) { 
+            if(!audio.duration) return;
             const rect = document.getElementById('progressContainer').getBoundingClientRect();
             const p = (e.clientX - rect.left) / rect.width;
             audio.currentTime = p * audio.duration; 
         }
+
         function changeVolume(e) { 
-            const v = e.offsetX / e.currentTarget.offsetWidth; 
-            audio.volume = v; 
-            document.getElementById('vFill').style.width = (v * 100) + "%"; 
+            const rect = e.currentTarget.getBoundingClientRect();
+            const v = (e.clientX - rect.left) / rect.width; 
+            audio.volume = Math.max(0, Math.min(1, v)); 
+            document.getElementById('vFill').style.width = (audio.volume * 100) + "%"; 
         }
     </script>
 </body>
