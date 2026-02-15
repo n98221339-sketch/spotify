@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotify Premium - Web Player</title>
+    <title>Spotify Premium - Advanced Player</title>
     <link rel="icon" type="image/x-icon" href="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -40,29 +40,26 @@
         /* Main Content */
         .main-content { flex: 1; background: var(--bg-surface); border-radius: 8px; overflow-y: auto; position: relative; scroll-behavior: smooth; }
         .top-bar { position: sticky; top: 0; height: 64px; padding: 0 32px; display: flex; align-items: center; justify-content: flex-end; background: rgba(0, 0, 0, 0.5); z-index: 100; gap: 20px; }
-
+        
         .auth-buttons { display: flex; gap: 15px; align-items: center; }
         .btn-login { background: none; border: none; color: var(--text-sub); font-weight: bold; cursor: pointer; }
         .btn-signup { background: white; color: black; border: none; padding: 10px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; }
 
-        .profile-zone { display: none; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.7); padding: 4px 12px 4px 4px; border-radius: 20px; cursor: pointer; transition: 0.2s; }
-        .profile-zone:hover { background: rgba(255, 255, 255, 0.1); }
+        .profile-zone { display: none; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.7); padding: 4px 12px 4px 4px; border-radius: 20px; cursor: pointer; }
         .profile-img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #282828; }
-        .profile-name { font-size: 14px; font-weight: bold; }
 
-        /* Folder Header */
-        .header-section { padding: 20px 24px 24px 24px; background: linear-gradient(to bottom, var(--header-color) 0%, var(--bg-surface) 100%); display: flex; align-items: flex-end; gap: 24px; margin-top: -64px; }
-        .header-section img { width: 232px; height: 232px; box-shadow: 0 4px 60px rgba(0, 0, 0, 0.5); border-radius: 4px; object-fit: cover; }
+        /* Header Playlist */
+        .header-section { padding: 80px 24px 24px 24px; background: linear-gradient(to bottom, var(--header-color) 0%, var(--bg-surface) 100%); display: flex; align-items: flex-end; gap: 24px; margin-top: -64px; }
+        .header-section img { width: 232px; height: 232px; box-shadow: 0 4px 60px rgba(0,0,0,0.5); border-radius: 4px; object-fit: cover; }
         .header-text h1 { font-size: 72px; margin: 8px 0; letter-spacing: -3px; font-weight: 900; }
 
-        /* Song Table */
-        .song-table { width: 100%; border-collapse: collapse; padding: 0 24px; table-layout: fixed; margin-bottom: 50px; }
-        .song-table th { border-bottom: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-sub); text-align: left; padding: 10px; font-size: 13px; }
-        .song-row:hover { background: rgba(255, 255, 255, 0.1); }
-        .song-row td { padding: 12px 10px; font-size: 14px; color: var(--text-sub); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .play-btn-main { width: 56px; height: 56px; background: var(--sp-green); border: none; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-        /* Đổi màu khi bài hát được phát */
-        .playing-now td { color: var(--sp-green) !important; }
+        /* Song Table */
+        .song-table { width: 100%; border-collapse: collapse; padding: 0 24px; margin-bottom: 50px; }
+        .song-table th { border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-sub); text-align: left; padding: 10px; font-size: 13px; }
+        .song-row:hover { background: rgba(255,255,255,0.1); }
+        .song-row td { padding: 12px 10px; font-size: 14px; color: var(--text-sub); cursor: pointer; }
         .playing-now b { color: var(--sp-green) !important; }
 
         /* Player Bar */
@@ -70,35 +67,31 @@
         .p-left { width: 30%; display: flex; align-items: center; gap: 12px; }
         .p-center { flex: 1; max-width: 722px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
         .p-right { width: 30%; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
-        .ctrl-btn { color: var(--text-sub); cursor: pointer; font-size: 16px; transition: 0.2s; }
-        .ctrl-btn:hover { color: white; }
+        
+        .ctrl-btn { color: var(--text-sub); cursor: pointer; font-size: 16px; }
         .ctrl-active { color: var(--sp-green) !important; }
-
         .bar-bg { height: 4px; background: #4f4f4f; border-radius: 2px; position: relative; cursor: pointer; width: 100%; }
         .bar-fill { height: 100%; background: white; border-radius: 2px; width: 0%; }
-        .bar-bg:hover .bar-fill { background: var(--sp-green); }
 
         /* Modals */
-        .modal { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); display: none; justify-content: center; align-items: center; z-index: 9999; }
-        .modal-box { background: #282828; padding: 25px; border-radius: 12px; width: 380px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6); }
-        .modal-box input, .modal-box select { background: #3e3e3e; border: none; padding: 10px; border-radius: 4px; color: white; outline: none; font-size: 14px; }
-        .modal-box label { font-size: 11px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
-        .btn-add { background: var(--sp-green); color: black; font-weight: bold; padding: 12px; border-radius: 25px; border: none; cursor: pointer; margin-top: 10px; transition: 0.2s; }
-        .btn-add:hover { transform: scale(1.04); }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        .modal-box { background: #282828; padding: 25px; border-radius: 12px; width: 380px; display: flex; flex-direction: column; gap: 12px; }
+        .modal-box input, .modal-box select { background: #3e3e3e; border: none; padding: 10px; border-radius: 4px; color: white; outline: none; }
+        .btn-add { background: var(--sp-green); color: black; font-weight: bold; padding: 12px; border-radius: 25px; border: none; cursor: pointer; margin-top: 10px; }
 
+        /* Cards */
         .home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; padding: 24px; }
         .card { background: var(--bg-card); padding: 16px; border-radius: 8px; cursor: pointer; position: relative; transition: 0.3s; }
         .card:hover { background: #282828; }
         .card img { width: 100%; aspect-ratio: 1; border-radius: 6px; margin-bottom: 12px; object-fit: cover; }
-
-        .card-menu-btn { position: absolute; top: 12px; right: 12px; width: 35px; height: 35px; background: #282828; border-radius: 50%; display: none; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); z-index: 10; color: white; }
+        .card-menu-btn { position: absolute; top: 12px; right: 12px; width: 35px; height: 35px; background: rgba(0,0,0,0.7); border-radius: 50%; display: none; align-items: center; justify-content: center; color: white; }
         .card:hover .card-menu-btn { display: flex; }
 
-        .context-menu { position: fixed; background: #282828; border-radius: 4px; padding: 4px; display: none; z-index: 10000; min-width: 150px; }
+        .context-menu { position: fixed; background: #282828; border-radius: 4px; padding: 4px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); display: none; z-index: 10000; min-width: 150px; }
         .context-menu-item { padding: 12px; font-size: 14px; cursor: pointer; color: white; display: flex; align-items: center; gap: 10px; }
         .context-menu-item:hover { background: #3e3e3e; }
 
-        .preview-img-box { width: 100px; height: 100px; border-radius: 50%; border: 2px dashed #555; align-self: center; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 10px; cursor: pointer; }
+        .preview-img-box { width: 100px; height: 100px; border-radius: 50%; border: 2px dashed #555; align-self: center; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 10px; }
         .preview-img-box img { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
@@ -140,14 +133,12 @@
                     <div class="header-text">
                         <span style="font-size: 13px; font-weight: bold;">DANH SÁCH PHÁT</span>
                         <h1 id="fTitle"></h1>
-                        <div style="font-size: 14px;"><b id="fOwnerDisplay">NatsumiVN</b> • <span id="fCount">0</span> bài hát</div>
+                        <div style="font-size: 14px;"><b id="fOwnerDisplay">Admin</b> • <span id="fCount">0</span> bài hát</div>
                     </div>
                 </div>
 
                 <div style="padding: 24px; display: flex; align-items: center; gap: 25px;">
-                    <button class="play-btn-main" onclick="togglePlay()" style="width: 56px; height: 56px; background: var(--sp-green); border: none; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-play" id="bigPlayIcon"></i>
-                    </button>
+                    <button class="play-btn-main" onclick="togglePlay()"><i class="fas fa-play" id="bigPlayIcon"></i></button>
                     <i class="fas fa-plus-circle ctrl-btn" title="Thêm nhạc" onclick="openSongModal()" style="font-size: 24px;"></i>
                     <i class="fas fa-arrow-left ctrl-btn" onclick="showPage('home')" style="margin-left: auto;"> Quay lại</i>
                 </div>
@@ -158,7 +149,6 @@
                             <th width="40">#</th>
                             <th>TIÊU ĐỀ</th>
                             <th>NGHỆ SĨ</th>
-                            <th>ALBUM</th>
                             <th><i class="far fa-clock"></i></th>
                         </tr>
                     </thead>
@@ -188,9 +178,7 @@
             </div>
             <div style="display: flex; align-items: center; gap: 10px; width: 100%; font-size: 11px;">
                 <span id="timeCurrent">0:00</span>
-                <div class="bar-bg" onclick="seek(event)">
-                    <div class="bar-fill" id="pFill"></div>
-                </div>
+                <div class="bar-bg" onclick="seek(event)"><div class="bar-fill" id="pFill"></div></div>
                 <span id="timeTotal">0:00</span>
             </div>
         </div>
@@ -202,28 +190,36 @@
         </div>
     </div>
 
-    <div class="modal" id="songModal">
+    <div class="modal" id="authModal">
         <div class="modal-box">
-            <h3>Thêm bài hát</h3>
-            <label>Danh sách đích</label>
-            <select id="sTarget"></select>
-            
-            <label>Ảnh bài hát (Link hoặc File)</label>
-            <input type="text" id="sImgLink" placeholder="Dán link ảnh bìa bài hát..." oninput="handleImageOption('link', 'sPreview', this)">
-            <input type="file" id="sImgFile" accept="image/*" style="font-size: 12px;" onchange="handleImageOption('file', 'sPreview', this)">
-            <div class="preview-img-box" style="border-radius: 8px; width: 80px; height: 80px; margin-top: 5px;"><img id="sPreview" src="https://via.placeholder.com/150"></div>
-
-            <label>Thông tin bài hát</label>
-            <input type="text" id="sTitle" placeholder="Tên bài hát">
-            <input type="text" id="sArtist" placeholder="Nghệ sĩ">
-            <input type="text" id="sLink" placeholder="Link mp3 (URL)">
-            <button class="btn-add" onclick="addNewSong()">THÊM BÀI</button>
+            <h3>Tham gia ngay</h3>
+            <input type="text" id="authName" placeholder="Tên hiển thị...">
+            <div class="preview-img-box"><img id="authPreview" src="https://i.pravatar.cc/150"></div>
+            <button class="btn-add" onclick="fakeLogin()">ĐĂNG NHẬP</button>
         </div>
     </div>
 
-    <div class="modal" id="authModal"><div class="modal-box"><h3>Tham gia ngay</h3><label>Tên của bạn</label><input type="text" id="authName" placeholder="Tên hiển thị..."><label>Ảnh đại diện</label><input type="text" id="authLink" placeholder="Dán link ảnh..." oninput="handleImageOption('link', 'authPreview', this)"><input type="file" id="authFile" accept="image/*" onchange="handleImageOption('file', 'authPreview', this)"><div class="preview-img-box"><img id="authPreview" src="https://i.pravatar.cc/150"></div><button class="btn-add" onclick="fakeLogin()">ĐĂNG NHẬP</button></div></div>
-    <div class="modal" id="folderModal"><div class="modal-box"><h3>Tạo danh sách mới</h3><label>Tên</label><input type="text" id="fName" placeholder="Tên danh sách..."><label>Ảnh bìa</label><input type="text" id="fLinkInp" oninput="handleImageOption('link', 'fPreview', this)"><input type="file" id="fFileInp" onchange="handleImageOption('file', 'fPreview', this)"><div class="preview-img-box" style="border-radius: 8px; width: 120px; height: 120px;"><img id="fPreview" src="https://via.placeholder.com/300"></div><label>Màu</label><input type="color" id="fColor" value="#1ed760"><button class="btn-add" onclick="createFolder()">TẠO DANH SÁCH</button></div></div>
-    <div class="modal" id="profileModal"><div class="modal-box"><h3>Hồ sơ</h3><div class="preview-img-box"><img id="profPreview" src=""></div><label>Tên</label><input type="text" id="profInpName"><button class="btn-add" onclick="updateProfile()">LƯU</button><button onclick="logout()">Đăng xuất</button></div></div>
+    <div class="modal" id="folderModal">
+        <div class="modal-box">
+            <h3>Tạo danh sách mới</h3>
+            <input type="text" id="fName" placeholder="Tên danh sách...">
+            <input type="text" id="fLinkInp" placeholder="Link ảnh bìa (URL)..." oninput="document.getElementById('fPreview').src=this.value">
+            <div class="preview-img-box" style="border-radius: 8px;"><img id="fPreview" src="https://via.placeholder.com/300"></div>
+            <input type="color" id="fColor" value="#1ed760" style="height: 40px; width: 100%;">
+            <button class="btn-add" onclick="createFolder()">TẠO</button>
+        </div>
+    </div>
+
+    <div class="modal" id="songModal">
+        <div class="modal-box">
+            <h3>Thêm bài hát</h3>
+            <select id="sTarget"></select>
+            <input type="text" id="sTitle" placeholder="Tên bài hát">
+            <input type="text" id="sArtist" placeholder="Nghệ sĩ">
+            <input type="text" id="sLink" placeholder="Link nhạc (.mp3)">
+            <button class="btn-add" onclick="addNewSong()">THÊM BÀI</button>
+        </div>
+    </div>
 
     <div id="folderContextMenu" class="context-menu">
         <div class="context-menu-item" onclick="deleteFolder()" style="color:#ff4d4d;"><i class="fas fa-trash"></i> Xóa thư mục</div>
@@ -232,56 +228,85 @@
     <audio id="audio"></audio>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('sp_db')) || [];
+        // DỮ LIỆU MẪU (SEED DATA)
+        const seedData = [
+            {
+                name: "Nhạc Chill Mỗi Ngày",
+                img: "https://images.unsplash.com/photo-1459749411177-042180ce673c?w=500",
+                color: "#1e3264",
+                songs: [
+                    { title: "Bản nhạc mẫu 1", artist: "SoundHelix", link: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", img: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=100" },
+                    { title: "Bản nhạc mẫu 2", artist: "SoundHelix", link: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", img: "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=100" }
+                ]
+            }
+        ];
+
+        let db = JSON.parse(localStorage.getItem('sp_db'));
+        if(!db || db.length === 0) db = seedData;
+
         let user = JSON.parse(localStorage.getItem('sp_user')) || null;
         let curFolder = -1, curSong = -1, isShuffle = false, isRepeat = false, folderTarget = -1;
         let playedFromFolder = -1;
         const audio = document.getElementById('audio');
 
         window.onload = () => { renderHome(); checkAuth(); };
+
         function save() { localStorage.setItem('sp_db', JSON.stringify(db)); localStorage.setItem('sp_user', JSON.stringify(user)); }
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         window.onclick = (e) => { 
-            if (e.target.className === 'modal') e.target.style.display = 'none'; 
+            if (e.target.className === 'modal') e.target.style.display = 'none';
             document.getElementById('folderContextMenu').style.display = 'none';
-        }
-
-        function handleImageOption(type, previewId, element) {
-            const preview = document.getElementById(previewId);
-            if (type === 'link') { if (element.value) preview.src = element.value; } 
-            else if (type === 'file') {
-                const reader = new FileReader();
-                reader.onload = (e) => { preview.src = e.target.result; };
-                reader.readAsDataURL(element.files[0]);
-            }
         }
 
         function checkAuth() {
             const ab = document.getElementById('authBox'), pb = document.getElementById('profileBox');
-            if (user) { ab.style.display = 'none'; pb.style.display = 'flex'; document.getElementById('userName').innerText = user.name; document.getElementById('userImg').src = user.img; document.getElementById('fOwnerDisplay').innerText = user.name; } 
-            else { ab.style.display = 'flex'; pb.style.display = 'none'; }
+            if (user) {
+                ab.style.display = 'none'; pb.style.display = 'flex';
+                document.getElementById('userName').innerText = user.name;
+                document.getElementById('userImg').src = user.img;
+            } else {
+                ab.style.display = 'flex'; pb.style.display = 'none';
+            }
         }
 
-        function fakeLogin() { user = { name: document.getElementById('authName').value || "User", img: document.getElementById('authPreview').src }; save(); checkAuth(); document.getElementById('authModal').style.display = 'none'; }
-        function openProfileModal() { document.getElementById('profInpName').value = user.name; document.getElementById('profPreview').src = user.img; openModal('profileModal'); }
-        function updateProfile() { user.name = document.getElementById('profInpName').value; user.img = document.getElementById('profPreview').src; save(); checkAuth(); document.getElementById('profileModal').style.display = 'none'; }
-        function logout() { user = null; save(); checkAuth(); document.getElementById('profileModal').style.display = 'none'; }
+        function fakeLogin() {
+            user = { name: document.getElementById('authName').value || "User", img: document.getElementById('authPreview').src };
+            save(); checkAuth(); document.getElementById('authModal').style.display = 'none';
+        }
 
         function createFolder() {
-            db.push({ name: document.getElementById('fName').value, img: document.getElementById('fPreview').src, color: document.getElementById('fColor').value, songs: [] });
-            save(); renderHome(); document.getElementById('folderModal').style.display = 'none';
+            const name = document.getElementById('fName').value;
+            if (name) {
+                db.push({ name, img: document.getElementById('fPreview').src, color: document.getElementById('fColor').value, songs: [] });
+                save(); renderHome(); document.getElementById('folderModal').style.display = 'none';
+            }
         }
 
         function renderHome() {
             const grid = document.getElementById('folderGrid'); grid.innerHTML = '';
             db.forEach((f, i) => {
-                grid.innerHTML += `<div class="card" onclick="openFolder(${i})"><div class="card-menu-btn" onclick="showMenu(event, ${i})"><i class="fas fa-ellipsis-h"></i></div><img src="${f.img}"><b>${f.name}</b></div>`;
+                grid.innerHTML += `
+                    <div class="card" onclick="openFolder(${i})">
+                        <div class="card-menu-btn" onclick="showMenu(event, ${i})"><i class="fas fa-ellipsis-h"></i></div>
+                        <img src="${f.img}">
+                        <b>${f.name}</b>
+                    </div>`;
             });
             showPage('home');
         }
 
-        function showMenu(e, i) { e.stopPropagation(); folderTarget = i; const m = document.getElementById('folderContextMenu'); m.style.display = 'block'; m.style.top = e.clientY + 'px'; m.style.left = e.clientX + 'px'; }
-        function deleteFolder() { if (confirm("Xóa danh sách này?")) { db.splice(folderTarget, 1); save(); renderHome(); } }
+        function showMenu(e, i) {
+            e.stopPropagation();
+            folderTarget = i;
+            const m = document.getElementById('folderContextMenu');
+            m.style.display = 'block'; m.style.top = e.clientY + 'px'; m.style.left = e.clientX + 'px';
+        }
+
+        function deleteFolder() {
+            if (confirm("Xóa danh sách này?")) {
+                db.splice(folderTarget, 1); save(); renderHome();
+            }
+        }
 
         function openFolder(i) {
             curFolder = i;
@@ -291,7 +316,11 @@
             renderSongs(); showPage('folder');
         }
 
-        function showPage(p) { document.getElementById('homePage').style.display = p === 'home' ? 'block' : 'none'; document.getElementById('folderPage').style.display = p === 'folder' ? 'block' : 'none'; }
+        function showPage(p) {
+            document.getElementById('homePage').style.display = p === 'home' ? 'block' : 'none';
+            document.getElementById('folderPage').style.display = p === 'folder' ? 'block' : 'none';
+        }
+
         function openSongModal() {
             const sel = document.getElementById('sTarget'); sel.innerHTML = '';
             db.forEach((f, i) => { sel.innerHTML += `<option value="${i}" ${i === curFolder ? 'selected' : ''}>${f.name}</option>`; });
@@ -300,12 +329,11 @@
 
         function addNewSong() {
             const idx = document.getElementById('sTarget').value;
-            const songImg = document.getElementById('sPreview').src;
-            if (document.getElementById('sTitle').value && document.getElementById('sLink').value) {
-                db[idx].songs.push({ title: document.getElementById('sTitle').value, artist: document.getElementById('sArtist').value || "Unknown", link: document.getElementById('sLink').value, img: songImg });
+            const title = document.getElementById('sTitle').value;
+            const link = document.getElementById('sLink').value;
+            if (title && link) {
+                db[idx].songs.push({ title, artist: document.getElementById('sArtist').value || "Nghệ sĩ", link, img: db[idx].img });
                 save(); if (curFolder == idx) renderSongs(); document.getElementById('songModal').style.display = 'none';
-                // Reset preview sau khi thêm
-                document.getElementById('sPreview').src = "https://via.placeholder.com/150";
             }
         }
 
@@ -314,11 +342,13 @@
             if (curFolder === -1) return;
             db[curFolder].songs.forEach((s, i) => {
                 const isPlaying = (playedFromFolder === curFolder && curSong === i);
-                body.innerHTML += `<tr class="song-row ${isPlaying ? 'playing-now' : ''}" onclick="playSong(${i})">
-                <td>${isPlaying ? '<i class="fas fa-volume-up"></i>' : i + 1}</td>
-                <td><div style="display:flex;align-items:center;gap:10px;"><img src="${s.img}" style="width:40px;height:40px;border-radius:4px;object-fit:cover;"><b>${s.title}</b></div></td>
-                <td>${s.artist}</td><td>Album</td><td>3:45</td>
-            </tr>`;
+                body.innerHTML += `
+                    <tr class="song-row ${isPlaying ? 'playing-now' : ''}" onclick="playSong(${i})">
+                        <td>${isPlaying ? '<i class="fas fa-volume-up" style="color:#1ed760"></i>' : i + 1}</td>
+                        <td><div style="display:flex;align-items:center;gap:10px;"><img src="${s.img}" style="width:40px;height:40px;border-radius:4px;"><b>${s.title}</b></div></td>
+                        <td>${s.artist}</td>
+                        <td>3:45</td>
+                    </tr>`;
             });
             document.getElementById('fCount').innerText = db[curFolder].songs.length;
         }
@@ -344,18 +374,18 @@
         function nextSong() {
             if (playedFromFolder === -1) return;
             const total = db[playedFromFolder].songs.length;
-            if (isShuffle) curSong = Math.floor(Math.random() * total);
-            else { if (curSong >= total - 1 && !isRepeat) return; curSong = (curSong + 1) % total; }
+            curSong = (curSong + 1) % total;
             playSong(curSong);
         }
 
-        function prevSong() { if (playedFromFolder === -1) return; curSong = (curSong - 1 + db[playedFromFolder].songs.length) % db[playedFromFolder].songs.length; playSong(curSong); }
+        function prevSong() {
+            if (playedFromFolder === -1) return;
+            curSong = (curSong - 1 + db[playedFromFolder].songs.length) % db[playedFromFolder].songs.length;
+            playSong(curSong);
+        }
+
         function toggleShuffle() { isShuffle = !isShuffle; document.getElementById('shuffleBtn').classList.toggle('ctrl-active', isShuffle); }
         function toggleRepeat() { isRepeat = !isRepeat; document.getElementById('repeatBtn').classList.toggle('ctrl-active', isRepeat); }
-
-        audio.onended = () => { if (isRepeat) audio.play(); else nextSong(); };
-        function seek(e) { audio.currentTime = (e.offsetX / e.currentTarget.offsetWidth) * audio.duration; }
-        function changeVolume(e) { const v = e.offsetX / e.currentTarget.offsetWidth; audio.volume = v; document.getElementById('vFill').style.width = (v * 100) + "%"; }
 
         audio.ontimeupdate = () => {
             const p = (audio.currentTime / audio.duration) * 100 || 0;
@@ -363,6 +393,10 @@
             document.getElementById('timeCurrent').innerText = Math.floor(audio.currentTime / 60) + ":" + Math.floor(audio.currentTime % 60).toString().padStart(2, '0');
             document.getElementById('timeTotal').innerText = Math.floor(audio.duration / 60 || 0) + ":" + Math.floor(audio.duration % 60 || 0).toString().padStart(2, '0');
         };
+        
+        audio.onended = () => { if (isRepeat) audio.play(); else nextSong(); };
+        function seek(e) { audio.currentTime = (e.offsetX / e.currentTarget.offsetWidth) * audio.duration; }
+        function changeVolume(e) { audio.volume = e.offsetX / e.currentTarget.offsetWidth; document.getElementById('vFill').style.width = (audio.volume * 100) + "%"; }
     </script>
 </body>
 </html>
